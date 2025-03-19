@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Secure Navigation & Encrypted Route Finder</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    #map {
+      height: 400px;
+      margin-top: 20px;
+    }
+    label, select {
+      margin-right: 10px;
+    }
+    .info {
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Secure Navigation & Encrypted Route Finder</h2>
+  <!-- Dropdowns for start and destination -->
+  <div>
+    <label for="start">Start:</label>
+    <select id="start">
+      <option value="Accra">Accra</option>
+      <option value="Tema">Tema</option>
+      <option value="Kumasi">Kumasi</option>
+      <option value="Cape Coast">Cape Coast</option>
+      <option value="Takoradi">Takoradi</option>
+      <option value="Ho">Ho</option>
+      <option value="Tamale">Tamale</option>
+      <option value="Koforidua">Koforidua</option>
+      <option value="Bolgatanga">Bolgatanga</option>
+  </select>  
+    <label for="end">Destination:</label>
+    <select id="end">
+      <option value="Accra">Accra</option>
+      <option value="Tema">Tema</option>
+      <option value="Kumasi">Kumasi</option>
+      <option value="Cape Coast">Cape Coast</option>
+      <option value="Takoradi">Takoradi</option>
+      <option value="Ho">Ho</option>
+      <option value="Tamale">Tamale</option>
+      <option value="Koforidua">Koforidua</option>
+      <option value="Bolgatanga">Bolgatanga</option>
+  </select>
+  
+    <button onclick="findPath()">Find Encrypted Path</button>
+  </div>
+
+  <!-- Map container -->
+  <div id="map"></div>
+
+  <!-- Display results -->
+  <div class="info">
+    <p id="plainOutput"></p>
+    <p id="encryptedOutput"></p>
+  </div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    // Initialize the map centered on the Bay Area
+    var map = L.map('map').setView([37.7749, -122.4194], 10);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    var routeLayer; // To store the drawn polyline
+
+    function findPath() {
+      const start = document.getElementById("start").value;
+      const end = document.getElementById("end").value;
+
+      fetch("http://127.0.0.1:5000/shortest-path", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ start: start, end: end })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if(data.error) {
+          alert(data.error);
+          return;
+        }
+        
+        // Display plain and encrypted path information
+        document.getElementById("plainOutput").innerText = "Plain Path: " + data.plain_path.join(" → ");
+        document.getElementById("encryptedOutput").innerText = "Encrypted Path: " + data.encrypted_path.join(" → ");
+
+        // Remove previous route layer if it exists
+        if (routeLayer) {
+          map.removeLayer(routeLayer);
+        }
+
+        // Plot the route on the map using the coordinates returned
+        routeLayer = L.polyline(data.route_coords, {color: 'blue'}).addTo(map);
+        map.fitBounds(routeLayer.getBounds());
+
+        // Place markers at each node location
+        data.route_coords.forEach(function(coord, index) {
+          L.marker(coord).addTo(map)
+            .bindPopup("Node " + data.plain_path[index])
+            .openPopup();
+        });
+      })
+      .catch(err => console.error("Error: ", err));
+    }
+  </script>
+</body>
+</html>
