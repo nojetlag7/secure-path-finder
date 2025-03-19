@@ -6,7 +6,7 @@ import networkx as nx
 app = Flask(__name__)
 CORS(app)  # Enable CORS for local development
 
-# --- Sample Data ---
+
 
 # Locations with coordinates (latitude, longitude)
 locations = {
