@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS
-import numpy as np
-import networkx as nx
+from flask_cors import CORS #enables frontend apps to communicate with the backend
+import numpy as np #for performing matrix operations in encryption
+import networkx as nx #llbrary for graph based pathfinding
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for local development
@@ -47,7 +47,7 @@ for u, v, weight in edges:
 # --- Hill Cipher Functions (2x2 Key) ---
 
 # Our chosen 2x2 key matrix (must be invertible mod 26)
-key_matrix = np.array([[3, 3],
+key_matrix = np.array([[8, 3],
                        [2, 5]])
 
 def hill_encrypt(text, key_matrix):
@@ -58,7 +58,7 @@ def hill_encrypt(text, key_matrix):
     - Pads the text to a length multiple of the key dimension.
     - Encrypts block by block (here, blocks of 2 characters).
     """
-    text = text.upper().replace(" ", "")
+    text = text.upper().replace(" ", "") #changing the path into uppercase and removing whitespaces
     n = key_matrix.shape[0]
     # Pad with 'X' if necessary.
     if len(text) % n != 0:
